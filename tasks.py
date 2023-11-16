@@ -79,7 +79,8 @@ def export_single_checkpoint(c, voice_key, info):
     )
     c.run(
         "python -m piper_train.export_onnx_streaming --debug "
-        f"{checkpoint} {str(output_path)}"
+        f"{checkpoint} {str(output_path)}",
+        hide=True
     )
     config = hf_hub_download(
         PIPER_CKPT_REPO,
