@@ -1,10 +1,8 @@
 # coding: utf-8
 
 
-import os
-os.putenv("HF_ASSETS_CACHE", os.path.join(os.path.dirname(__file__), ".hf.cache"))
-
 import json
+import os
 import shutil
 from pathlib import Path, PurePosixPath
 from zipfile import ZipFile
@@ -92,7 +90,10 @@ def export_single_checkpoint(c, voice_key, info):
     with ZipFile(os.path.join(ZIP_DIR, f"{voice_key}.zip"), "w") as zfile:
         for pth in output_path.iterdir():
             zfile.write(os.fspath(pth), pth.name)
-    shutil.rmtree(ASSETS_DIR)
+    try:
+        shutil.rmtree(ASSETS_DIR)
+    except:
+        pass
 
 
 @task(
