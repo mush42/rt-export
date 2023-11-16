@@ -7,13 +7,12 @@ import shutil
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path, PurePosixPath
 from zipfile import ZipFile
-from huggingface_hub.constants import HF_ASSETS_CACHE
+from huggingface_hub.constants import HF_HOME
 from huggingface_hub import hf_api
 from huggingface_hub import hf_hub_download
 from invoke import task
 
 
-ASSETS_DIR = Path(HF_ASSETS_CACHE).expanduser().resolve()
 PIPER_CKPT_REPO = "rhasspy/piper-checkpoints"
 REPO_TYPE = "dataset"
 
@@ -111,7 +110,7 @@ def run(c):
     for voice_key, info in checkpoint_info.items():
         export_single_checkpoint(c, voice_key, info)
         try:
-            shutil.rmtree(ASSETS_DIR)
+            shutil.rmtree(HF_HOME)
         except:
             print("Failed to remove hf download cache")
     os.chdir(os.fspath(HERE))
