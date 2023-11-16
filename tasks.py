@@ -113,7 +113,7 @@ def run(c):
     os.chdir("./piper/src/python")
     with ThreadPoolExecutor(max_workers=os.cpu_count()) as executor:
         for key in executor.map(
-            lambda k, i: export_single_checkpoint(c, k, i),
+            lambda kv: export_single_checkpoint(c, *kv),
             checkpoint_info.items()
         ):
             print(f"Completed voice: {key}")
