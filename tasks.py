@@ -53,8 +53,11 @@ def write_checkpoint_info(c, refresh=False):
 
 @task
 def clone_and_checkout(c, force=False):
-    if force and os.path.isdir("piper"):
-        shutil.rmtree("piper")
+    if os.path.isdir("piper"):
+        if force:
+            shutil.rmtree("piper")
+        else:
+            return
     c.run("git clone https://github.com/mush42/piper")
     with c.cd("piper"):
         c.run("git checkout streaming")
@@ -94,10 +97,12 @@ def export_single_checkpoint(c, voice_key, info):
 
 
 @task(
-    pre=(clone_and_checkout, write_checkpoint_info)
+    pre=[clone_and_checkout, write_checkpoint_info,]
 )
 def run(c):
     with open(CHECKPOINTS_FILE, "r", encoding="utf-8") as file:
         checkpoint_info = json.load(file)
+    os.chdir("./piper/src/python")
     for voice_key, info in checkpoint_info.items():
         export_single_checkpoint(c, voice_key, info)
+    os.chdir(os.fspath(HERE))
