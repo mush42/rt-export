@@ -27,7 +27,7 @@ ZIP_DIR.mkdir(parents=True, exist_ok=True)
 @task
 def write_checkpoint_info(c, refresh=False):
     if not refresh and os.path.isfile(CHECKPOINTS_FILE):
-        print("Info already downloaded. Doing nothing")
+        print("Checkpoint Info already downloaded. Doing nothing")
         return
     all_files = {
         PurePosixPath(pth)
@@ -63,8 +63,14 @@ def clone_and_checkout(c, force=False):
 
 
 def export_single_checkpoint(c, voice_key, info):
+    lang, name, quality = voice_key.split("-")
+    streaming_key = "-".join([lang, name, "rt", quality])
+    voice_zip = ZIP_DIR / f"{streaming_key}.zip"
+    if voice_zip.is_file():
+        print(f"Voice {streaming_key} already converted")
+        return
+    print(f"Making voice: {streaming_key}")
     output_path = OUTPUT_DIR / voice_key
-    print("Converting model")
     checkpoint = hf_hub_download(
         PIPER_CKPT_REPO,
         repo_type=REPO_TYPE,
@@ -87,13 +93,14 @@ def export_single_checkpoint(c, voice_key, info):
             filename=info["model_card"]
         )
         shutil.copy(model_card, output_path)
-    with ZipFile(os.path.join(ZIP_DIR, f"{voice_key}.zip"), "w") as zfile:
+    with ZipFile(os.fspath(voice_zip), "w") as zfile:
         for pth in output_path.iterdir():
             zfile.write(os.fspath(pth), pth.name)
     try:
         shutil.rmtree(ASSETS_DIR)
     except:
         pass
+    print(f"Exported  voice: {streaming_key}")
 
 
 @task(
