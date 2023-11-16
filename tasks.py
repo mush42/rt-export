@@ -6,7 +6,6 @@ os.putenv("HF_ASSETS_CACHE", os.path.join(os.path.dirname(__file__), ".hf.cache"
 
 import json
 import shutil
-import sys
 from pathlib import Path, PurePosixPath
 from zipfile import ZipFile
 from huggingface_hub.constants import HF_ASSETS_CACHE
@@ -31,7 +30,7 @@ ZIP_DIR.mkdir(parents=True, exist_ok=True)
 def write_checkpoint_info(c, refresh=False):
     if not refresh and os.path.isfile(CHECKPOINTS_FILE):
         print("Info already downloaded. Doing nothing")
-        sys.exit(0)
+        return
     all_files = {
         PurePosixPath(pth)
         for pth in hf_api.list_repo_files(PIPER_CKPT_REPO, repo_type=REPO_TYPE)
