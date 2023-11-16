@@ -89,7 +89,7 @@ def export_single_checkpoint(c, voice_key, info):
             filename=info["model_card"]
         )
         shutil.copy(model_card, output_path)
-    with ZipFile.open(os.path.join(ZIP_DIR, f"{voice_key}.zip")) as zfile:
+    with ZipFile(os.path.join(ZIP_DIR, f"{voice_key}.zip"), "w") as zfile:
         for pth in output_path.iterdir():
             zfile.write(os.fspath(pth), pth.name)
     shutil.rmtree(ASSETS_DIR)

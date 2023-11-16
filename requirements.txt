@@ -3,10 +3,10 @@ huggingface_hub==0.19.3
 
 # Piper deps
 torch
+pytorch-lightning
 onnx
 onnxruntime
 cython>=0.29.0,<1
 piper-phonemize~=1.1.0
 librosa>=0.9.2,<1
 numpy>=1.19.0
-pytorch-lightning~=1.7.0
