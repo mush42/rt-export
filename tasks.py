@@ -98,10 +98,6 @@ def export_single_checkpoint(c, voice_key, info):
     with ZipFile(os.fspath(voice_zip), "w") as zfile:
         for pth in output_path.iterdir():
             zfile.write(os.fspath(pth), pth.name)
-    try:
-        shutil.rmtree(ASSETS_DIR)
-    except:
-        pass
     print(f"Exported  voice: {streaming_key}")
 
 
@@ -112,10 +108,11 @@ def run(c):
     with open(CHECKPOINTS_FILE, "r", encoding="utf-8") as file:
         checkpoint_info = json.load(file)
     os.chdir("./piper/src/python")
-    with ThreadPoolExecutor(max_workers=os.cpu_count()) as executor:
-        for key in executor.map(
-            lambda kv: export_single_checkpoint(c, *kv),
-            checkpoint_info.items()
-        ):
-            print(f"Completed voice: {key}")
+    for voice_key, info in checkpoint_info.items():
+        export_single_checkpoint(c, voice_key, info)
+        try:
+            shutil.rmtree(ASSETS_DIR)
+        except:
+            print("Failed to remove hf download cache")
     os.chdir(os.fspath(HERE))
+    print("Done all")
