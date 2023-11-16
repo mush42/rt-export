@@ -4,6 +4,7 @@
 import json
 import os
 import shutil
+from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path, PurePosixPath
 from zipfile import ZipFile
 from huggingface_hub.constants import HF_ASSETS_CACHE
@@ -110,6 +111,10 @@ def run(c):
     with open(CHECKPOINTS_FILE, "r", encoding="utf-8") as file:
         checkpoint_info = json.load(file)
     os.chdir("./piper/src/python")
-    for voice_key, info in checkpoint_info.items():
-        export_single_checkpoint(c, voice_key, info)
+    with ThreadPoolExecutor(max_workers=os.cpu_count()) as executor:
+        for key in executor.map(
+            lambda k, i: export_single_checkpoint(c, k, i),
+            checkpoint_info.items()
+        ):
+            print(f"Completed voice: {key}")
     os.chdir(os.fspath(HERE))
