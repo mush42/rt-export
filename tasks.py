@@ -102,7 +102,7 @@ def export_single_checkpoint(c, voice_key, info, tmp_dir):
         shutil.copy(model_card, output_path)
     with TarFile(os.fspath(voice_tar), "w") as t_file:
         for pth in output_path.iterdir():
-            t_file.write(os.fspath(pth), pth.name)
+            t_file.add(os.fspath(pth), pth.name)
     print(f"Exported  voice: {streaming_key}")
 
 
