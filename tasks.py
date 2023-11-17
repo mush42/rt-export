@@ -127,7 +127,7 @@ def run(c):
 @task
 def hf_upload(c, token: str):
     upload_folder(
-        TARGET_REPO,
+        repo_id=TARGET_REPO,
         folder_path=VOICES_DIR,
         path_in_repo="voices",
         commit_message="upload exported RT voices",
