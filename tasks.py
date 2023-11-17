@@ -6,9 +6,9 @@ import os
 import shutil
 from pathlib import Path, PurePosixPath
 from tempfile import TemporaryDirectory
-from zipfile import ZipFile
+from tarfile import TarFile
 from huggingface_hub import hf_api
-from huggingface_hub import hf_hub_download
+from huggingface_hub import hf_hub_download, upload_folder
 from invoke import task
 
 
@@ -17,14 +17,14 @@ REPO_TYPE = "dataset"
 
 HERE = Path(os.path.dirname(__file__))
 CHECKPOINTS_FILE = HERE / "checkpoints.json"
-ZIP_DIR = HERE / "packed"
-ZIP_DIR.mkdir(parents=True, exist_ok=True)
+VOICES_DIR = HERE / "voices"
+VOICES_DIR.mkdir(parents=True, exist_ok=True)
 
 
 @task
 def write_checkpoint_info(c, refresh=False):
     if not refresh and os.path.isfile(CHECKPOINTS_FILE):
-        print("Checkpoint Info already downloaded. Doing nothing")
+        print("Checkpoints list already downloaded. Doing nothing")
         return
     all_files = {
         PurePosixPath(pth)
@@ -62,8 +62,8 @@ def clone_and_checkout(c, force=False):
 def export_single_checkpoint(c, voice_key, info, tmp_dir):
     lang, name, quality = voice_key.split("-")
     streaming_key = "-".join([lang, f"{name}+RT", quality])
-    voice_zip = ZIP_DIR / f"{streaming_key}.zip"
-    if voice_zip.is_file():
+    voice_tar = VOICES_DIR / f"{streaming_key}.tar.gz"
+    if voice_tar.is_file():
         print(f"Voice {streaming_key} already converted")
         return
     print(f"Making voice: {streaming_key}")
@@ -100,9 +100,9 @@ def export_single_checkpoint(c, voice_key, info, tmp_dir):
             cache_dir=tmp_dir
         )
         shutil.copy(model_card, output_path)
-    with ZipFile(os.fspath(voice_zip), "w") as zfile:
+    with TarFile(os.fspath(voice_tar), "w") as t_file:
         for pth in output_path.iterdir():
-            zfile.write(os.fspath(pth), pth.name)
+            t_file.write(os.fspath(pth), pth.name)
     print(f"Exported  voice: {streaming_key}")
 
 
@@ -118,3 +118,19 @@ def run(c):
             export_single_checkpoint(c, voice_key, info, tmp_dir)
     os.chdir(os.fspath(HERE))
     print("Done all")
+
+
+# =============
+# Upload to HF
+
+@task
+def hf_upload(c, token: str):
+    upload_folder(
+        TARGET_REPO,
+        folder_path=VOICES_DIR,
+        path_in_repo="voices",
+        commit_message="upload exported RT voices",
+        allow_patterns="*.tar.gz",
+        repo_type="dataset",
+        token=token,
+    )
