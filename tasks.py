@@ -63,7 +63,7 @@ def clone_and_checkout(c, force=False):
 
 def export_single_checkpoint(c, voice_key, info, tmp_dir):
     lang, name, quality = voice_key.split("-")
-    streaming_key = "-".join([lang, name, "rt", quality])
+    streaming_key = "-".join([lang, f"{name}+RT", quality])
     voice_zip = ZIP_DIR / f"{streaming_key}.zip"
     if voice_zip.is_file():
         print(f"Voice {streaming_key} already converted")
@@ -87,7 +87,13 @@ def export_single_checkpoint(c, voice_key, info, tmp_dir):
         filename=info["config"],
         cache_dir=tmp_dir
     )
-    shutil.copy(config, output_path)
+    config_dict = json.loads(
+        Path(config).read_text(encoding="utf-8")
+    )
+    config_dict["key"] = streaming_key
+    config_dict["streaming"] = True
+    with open(output_path / "config.json", "w", encoding="utf-8") as cfg_file:
+        json.dump(config_dict, cfg_file, ensure_ascii=False, indent=2)
     if "model_card" in info:
         model_card = hf_hub_download(
             PIPER_CKPT_REPO,
