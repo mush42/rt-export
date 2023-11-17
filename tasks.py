@@ -23,10 +23,6 @@ VOICES_DIR.mkdir(parents=True, exist_ok=True)
 
 CONVERTED_VOICES = set(os.listdir(VOICES_DIR))
 
-for vc in CONVERTED_VOICES:
-    os.unlink(os.path.join(VOICES_DIR, vc))
-
-Path("done.txt").write_text("\n".join(CONVERTED_VOICES), encoding="utf-8")
 
 @task
 def write_checkpoint_info(c, refresh=False):
@@ -70,7 +66,7 @@ def export_single_checkpoint(c, voice_key, info, tmp_dir):
     lang, name, quality = voice_key.split("-")
     streaming_key = "-".join([lang, f"{name}+RT", quality])
     voice_tar = VOICES_DIR / f"{streaming_key}.tar.gz"
-    if voice_tar.is_file() or (voice_tar in CONVERTED_VOICES):
+    if voice_tar.is_file() or (voice_tar.name in CONVERTED_VOICES):
         print(f"Voice {streaming_key} already converted")
         return
     print(f"Making voice: {streaming_key}")
