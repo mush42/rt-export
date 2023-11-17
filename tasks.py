@@ -4,10 +4,9 @@
 import json
 import os
 import shutil
-from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path, PurePosixPath
+from tempfile import TemporaryDirectory
 from zipfile import ZipFile
-from huggingface_hub.constants import HF_HUB_CACHE
 from huggingface_hub import hf_api
 from huggingface_hub import hf_hub_download
 from invoke import task
@@ -62,7 +61,7 @@ def clone_and_checkout(c, force=False):
         c.run("source ./build_monotonic_align.sh")
 
 
-def export_single_checkpoint(c, voice_key, info):
+def export_single_checkpoint(c, voice_key, info, tmp_dir):
     lang, name, quality = voice_key.split("-")
     streaming_key = "-".join([lang, name, "rt", quality])
     voice_zip = ZIP_DIR / f"{streaming_key}.zip"
@@ -74,7 +73,8 @@ def export_single_checkpoint(c, voice_key, info):
     checkpoint = hf_hub_download(
         PIPER_CKPT_REPO,
         repo_type=REPO_TYPE,
-        filename=info["checkpoint"]
+        filename=info["checkpoint"],
+        cache_dir=tmp_dir
     )
     c.run(
         "python -m piper_train.export_onnx_streaming --debug "
@@ -84,14 +84,16 @@ def export_single_checkpoint(c, voice_key, info):
     config = hf_hub_download(
         PIPER_CKPT_REPO,
         repo_type=REPO_TYPE,
-        filename=info["config"]
+        filename=info["config"],
+        cache_dir=tmp_dir
     )
     shutil.copy(config, output_path)
     if "model_card" in info:
         model_card = hf_hub_download(
             PIPER_CKPT_REPO,
             repo_type=REPO_TYPE,
-            filename=info["model_card"]
+            filename=info["model_card"],
+            cache_dir=tmp_dir
         )
         shutil.copy(model_card, output_path)
     with ZipFile(os.fspath(voice_zip), "w") as zfile:
@@ -108,10 +110,7 @@ def run(c):
         checkpoint_info = json.load(file)
     os.chdir("./piper/src/python")
     for voice_key, info in checkpoint_info.items():
-        export_single_checkpoint(c, voice_key, info)
-        try:
-            shutil.rmtree(HF_HUB_CACHE)
-        except:
-            print("Failed to remove hf download cache")
+        with TemporaryDirectory() as tmp_dir:
+            export_single_checkpoint(c, voice_key, info, tmp_dir)
     os.chdir(os.fspath(HERE))
     print("Done all")
