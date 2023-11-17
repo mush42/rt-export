@@ -21,7 +21,9 @@ CHECKPOINTS_FILE = HERE / "checkpoints.json"
 VOICES_DIR = HERE / "voices"
 VOICES_DIR.mkdir(parents=True, exist_ok=True)
 
-CONVERTED_VOICES = set(os.listdir(VOICES_DIR))
+CONVERTED_VOICES = set(
+    Path("all.txt").read_text(encoding="utf-8").splitlines()
+)
 
 
 @task
