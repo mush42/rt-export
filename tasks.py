@@ -14,6 +14,7 @@ from invoke import task
 
 PIPER_CKPT_REPO = "rhasspy/piper-checkpoints"
 REPO_TYPE = "dataset"
+TARGET_REPO = "mush42/piper-rt"
 
 HERE = Path(os.path.dirname(__file__))
 CHECKPOINTS_FILE = HERE / "checkpoints.json"
