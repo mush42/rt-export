@@ -17,8 +17,6 @@ REPO_TYPE = "dataset"
 
 HERE = Path(os.path.dirname(__file__))
 CHECKPOINTS_FILE = HERE / "checkpoints.json"
-OUTPUT_DIR = HERE / "outputs"
-OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 ZIP_DIR = HERE / "packed"
 ZIP_DIR.mkdir(parents=True, exist_ok=True)
 
@@ -69,7 +67,7 @@ def export_single_checkpoint(c, voice_key, info, tmp_dir):
         print(f"Voice {streaming_key} already converted")
         return
     print(f"Making voice: {streaming_key}")
-    output_path = OUTPUT_DIR / voice_key
+    output_path = Path(tmp_dir).joinpath("exported")
     checkpoint = hf_hub_download(
         PIPER_CKPT_REPO,
         repo_type=REPO_TYPE,
