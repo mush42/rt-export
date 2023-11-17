@@ -24,7 +24,7 @@ VOICES_DIR.mkdir(parents=True, exist_ok=True)
 CONVERTED_VOICES = set(os.listdir(VOICES_DIR))
 
 for vc in CONVERTED_VOICES:
-    os.unlink(vc)
+    os.unlink(os.path.join(VOICES_DIR, vc))
 
 Path("done.txt").write_text("\n".join(CONVERTED_VOICES), encoding="utf-8")
 
